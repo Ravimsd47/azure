@@ -1,0 +1,165 @@
+{% extends 'employees/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px 24px;
+        margin-bottom: 24px;
+    }
+
+    @media (max-width: 640px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Custom Checkbox Design */
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 36px;
+    }
+
+    .form-checkbox {
+        width: 20px;
+        height: 20px;
+        background-color: var(--bg-input);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        accent-color: var(--color-primary);
+        cursor: pointer;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        border-top: 1px solid var(--border-color);
+        padding-top: 24px;
+        margin-top: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="glass-card">
+        <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-user-gear" style="color: var(--color-primary);"></i>
+            <span>{{ title }}</span>
+        </h2>
+        
+        <form method="POST" autocomplete="off">
+            {% csrf_token %}
+            
+            <div class="form-grid">
+                <!-- First Name -->
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.first_name.id_for_label }}">First Name <span style="color: var(--color-danger);">*</span></label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <div style="color: var(--color-danger); font-size: 12px; margin-top: 4px;">{{ form.first_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Last Name -->
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.last_name.id_for_label }}">Last Name <span style="color: var(--color-danger);">*</span></label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <div style="color: var(--color-danger); font-size: 12px; margin-top: 4px;">{{ form.last_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.email.id_for_label }}">Email Address <span style="color: var(--color-danger);">*</span></label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div style="color: var(--color-danger); font-size: 12px; margin-top: 4px;">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Phone -->
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.phone.id_for_label }}">Phone Number</label>
+                    {{ form.phone }}
+                    {% if form.phone.errors %}
+                        <div style="color: var(--color-danger); font-size: 12px; margin-top: 4px;">{{ form.phone.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Designation -->
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.designation.id_for_label }}">Designation <span style="color: var(--color-danger);">*</span></label>
+                    {{ form.designation }}
+                    {% if form.designation.errors %}
+                        <div style="color: var(--color-danger); font-size: 12px; margin-top: 4px;">{{ form.designation.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Department -->
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.department.id_for_label }}">Department <span style="color: var(--color-danger);">*</span></label>
+                    {{ form.department }}
+                    {% if form.department.errors %}
+                        <div style="color: var(--color-danger); font-size: 12px; margin-top: 4px;">{{ form.department.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Date Joined -->
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.date_joined.id_for_label }}">Joining Date <span style="color: var(--color-danger);">*</span></label>
+                    {{ form.date_joined }}
+                    {% if form.date_joined.errors %}
+                        <div style="color: var(--color-danger); font-size: 12px; margin-top: 4px;">{{ form.date_joined.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Salary -->
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.salary.id_for_label }}">Annual Salary (USD) <span style="color: var(--color-danger);">*</span></label>
+                    {{ form.salary }}
+                    {% if form.salary.errors %}
+                        <div style="color: var(--color-danger); font-size: 12px; margin-top: 4px;">{{ form.salary.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Active Checkbox -->
+                <div class="form-group checkbox-group">
+                    {{ form.is_active }}
+                    <label class="form-label" for="{{ form.is_active.id_for_label }}" style="margin-bottom: 0; cursor: pointer;">
+                        Active Employee (Displays on roster and list views)
+                    </label>
+                    {% if form.is_active.errors %}
+                        <div style="color: var(--color-danger); font-size: 12px; margin-top: 4px;">{{ form.is_active.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                {% if employee %}
+                <a href="{% url 'employee_detail' employee.id %}" class="btn btn-secondary">Cancel</a>
+                {% else %}
+                <a href="{% url 'employee_list' %}" class="btn btn-secondary">Cancel</a>
+                {% endif %}
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Save Employee</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

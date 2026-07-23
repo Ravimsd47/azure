@@ -1,0 +1,166 @@
+{% extends 'employees/base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container {
+        width: 100vw;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .login-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        padding: 40px;
+        width: 100%;
+        max-width: 440px;
+        box-shadow: var(--shadow-lg);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 60%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .login-logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        background: var(--color-primary);
+        color: white;
+        font-size: 28px;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 24px var(--color-primary-glow);
+        position: relative;
+        z-index: 1;
+    }
+
+    .login-header h2 {
+        font-size: 26px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--text-primary);
+        letter-spacing: -0.5px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .login-header p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 32px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .login-form {
+        text-align: left;
+        position: relative;
+        z-index: 1;
+    }
+
+    .login-form .form-group {
+        margin-bottom: 24px;
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-top: 10px;
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px var(--color-primary-glow);
+    }
+
+    .login-btn:hover {
+        background: #0284c7;
+        box-shadow: 0 8px 24px rgba(14, 165, 233, 0.45);
+        transform: translateY(-2px);
+    }
+
+    .login-footer {
+        margin-top: 24px;
+        font-size: 13px;
+        color: var(--text-muted);
+        position: relative;
+        z-index: 1;
+    }
+
+    .errorlist {
+        list-style: none;
+        color: var(--color-danger);
+        font-size: 13px;
+        margin-top: 4px;
+        padding-left: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-logo">
+            <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div class="login-header">
+            <h2>Welcome to HR Pulse</h2>
+            <p>Access your employee dashboard</p>
+        </div>
+        
+        <form method="POST" class="login-form">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div class="form-group">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                <input type="{{ field.field.widget.input_type|default:'text' }}" 
+                       name="{{ field.html_name }}" 
+                       id="{{ field.id_for_label }}" 
+                       class="form-input" 
+                       required 
+                       placeholder="Enter your {{ field.label|lower }}">
+                {% if field.errors %}
+                    {{ field.errors }}
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            <button type="submit" class="login-btn">
+                <span>Sign In</span>
+                <i class="fa-solid fa-arrow-right-to-bracket" style="margin-left: 8px;"></i>
+            </button>
+        </form>
+        
+        <div class="login-footer">
+            <span>Secured Session Authentication</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

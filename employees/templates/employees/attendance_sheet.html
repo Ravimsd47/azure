@@ -1,0 +1,248 @@
+{% extends 'employees/base.html' %}
+
+{% block title %}Daily Attendance Sheet{% endblock %}
+{% block page_title %}Attendance Sheet{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Styling for attendance marking options */
+    .status-options-grid {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .status-option {
+        position: relative;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .status-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .status-option-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        border: 1px solid var(--border-color);
+        background-color: var(--bg-input);
+        color: var(--text-secondary);
+        transition: all 0.2s ease;
+    }
+
+    .status-option:hover .status-option-label {
+        border-color: var(--text-muted);
+        color: var(--text-primary);
+    }
+
+    /* Radio selections colors */
+    .status-option input[type="radio"]:checked + .status-option-label.opt-present {
+        background-color: var(--color-success-bg);
+        border-color: var(--color-success);
+        color: var(--color-success);
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+    }
+
+    .status-option input[type="radio"]:checked + .status-option-label.opt-late {
+        background-color: rgba(139, 92, 246, 0.1);
+        border-color: #8b5cf6;
+        color: #8b5cf6;
+        box-shadow: 0 0 10px rgba(139, 92, 246, 0.15);
+    }
+
+    .status-option input[type="radio"]:checked + .status-option-label.opt-absent {
+        background-color: var(--color-danger-bg);
+        border-color: var(--color-danger);
+        color: var(--color-danger);
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.15);
+    }
+
+    .status-option input[type="radio"]:checked + .status-option-label.opt-leave {
+        background-color: var(--color-warning-bg);
+        border-color: var(--color-warning);
+        color: var(--color-warning);
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+    }
+
+    /* Time and notes input fields */
+    .time-input-sm {
+        padding: 6px 10px;
+        font-size: 13px;
+        background-color: var(--bg-input);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-primary);
+        outline: none;
+        width: 100px;
+        font-family: inherit;
+    }
+
+    .time-input-sm:focus {
+        border-color: var(--color-primary);
+    }
+
+    .notes-input-sm {
+        padding: 6px 10px;
+        font-size: 13px;
+        background-color: var(--bg-input);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-primary);
+        outline: none;
+        width: 100%;
+        max-width: 180px;
+        font-family: inherit;
+    }
+
+    .notes-input-sm:focus {
+        border-color: var(--color-primary);
+    }
+
+    /* Selection Date Filter Bar */
+    .date-filter-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 16px 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+        box-shadow: var(--shadow-glass);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Date Selection Filter Bar -->
+<div class="date-filter-bar">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <i class="fa-regular fa-calendar-check" style="font-size: 20px; color: var(--color-primary);"></i>
+        <div>
+            <h2 style="font-size: 16px; font-weight: 600;">Daily Attendance Grid</h2>
+            <p style="font-size: 12px; color: var(--text-muted);">Mark attendance for all employees on a single screen</p>
+        </div>
+    </div>
+    <form method="GET" action="{% url 'attendance_sheet' %}" id="date-select-form" style="display: flex; align-items: center; gap: 12px;">
+        <label for="sheet-date-picker" class="form-label" style="margin-bottom: 0;">Date:</label>
+        <input type="date" id="sheet-date-picker" name="date" class="form-input" value="{{ date_str }}" onchange="document.getElementById('date-select-form').submit();" style="width: auto; padding: 8px 12px;">
+    </form>
+</div>
+
+<!-- Attendance Form Sheet -->
+<form method="POST">
+    {% csrf_token %}
+    
+    <div class="employee-table-container">
+        {% if sheet_data %}
+        <table class="employee-table">
+            <thead>
+                <tr>
+                    <th>Employee Name</th>
+                    <th>Attendance Status</th>
+                    <th>Check In</th>
+                    <th>Check Out</th>
+                    <th>Notes / Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in sheet_data %}
+                <tr>
+                    <td>
+                        <div class="employee-cell">
+                            <div class="avatar-lg" style="width: 36px; height: 36px; font-size: 13px;">
+                                {{ item.employee.first_name|slice:":1" }}{{ item.employee.last_name|slice:":1" }}
+                            </div>
+                            <div class="meta-cell">
+                                <span class="meta-title" style="font-size: 14px;">{{ item.employee.full_name }}</span>
+                                <span class="meta-subtitle">{{ item.employee.designation }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="status-options-grid">
+                            <!-- Present -->
+                            <label class="status-option">
+                                <input type="radio" name="status_{{ item.employee.id }}" value="Present" {% if item.status == 'Present' %}checked{% endif %}>
+                                <div class="status-option-label opt-present">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    <span>Present</span>
+                                </div>
+                            </label>
+                            
+                            <!-- Late -->
+                            <label class="status-option">
+                                <input type="radio" name="status_{{ item.employee.id }}" value="Late" {% if item.status == 'Late' %}checked{% endif %}>
+                                <div class="status-option-label opt-late">
+                                    <i class="fa-solid fa-clock"></i>
+                                    <span>Late</span>
+                                </div>
+                            </label>
+                            
+                            <!-- Absent -->
+                            <label class="status-option">
+                                <input type="radio" name="status_{{ item.employee.id }}" value="Absent" {% if item.status == 'Absent' %}checked{% endif %}>
+                                <div class="status-option-label opt-absent">
+                                    <i class="fa-solid fa-circle-xmark"></i>
+                                    <span>Absent</span>
+                                </div>
+                            </label>
+                            
+                            <!-- Leave -->
+                            <label class="status-option">
+                                <input type="radio" name="status_{{ item.employee.id }}" value="Leave" {% if item.status == 'Leave' %}checked{% endif %}>
+                                <div class="status-option-label opt-leave">
+                                    <i class="fa-solid fa-calendar-minus"></i>
+                                    <span>Leave</span>
+                                </div>
+                            </label>
+                        </div>
+                    </td>
+                    <td>
+                        <input type="time" name="check_in_{{ item.employee.id }}" value="{{ item.check_in }}" class="time-input-sm">
+                    </td>
+                    <td>
+                        <input type="time" name="check_out_{{ item.employee.id }}" value="{{ item.check_out }}" class="time-input-sm">
+                    </td>
+                    <td>
+                        <input type="text" name="notes_{{ item.employee.id }}" value="{{ item.notes }}" placeholder="Notes..." class="notes-input-sm">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="glass-card" style="text-align: center; padding: 60px 20px; border: none; margin-bottom: 0;">
+            <i class="fa-solid fa-user-slash" style="font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.4; color: var(--color-primary);"></i>
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No Active Employees Available</h3>
+            <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto 20px auto; font-size: 14px;">
+                You must have registered active employee profiles before you can log or manage attendance records.
+            </p>
+            <a href="{% url 'employee_create' %}" class="btn btn-primary">Create Employee Profile</a>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if sheet_data %}
+    <div style="display: flex; justify-content: flex-end; margin-top: 24px; gap: 12px;">
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Discard Changes</a>
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-square-check"></i>
+            <span>Submit Attendance Sheet</span>
+        </button>
+    </div>
+    {% endif %}
+</form>
+{% endblock %}

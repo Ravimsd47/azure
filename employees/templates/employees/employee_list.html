@@ -1,0 +1,257 @@
+{% extends 'employees/base.html' %}
+
+{% block title %}Employees{% endblock %}
+{% block page_title %}Employees{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Search Bar Design */
+    .search-filter-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .search-form {
+        display: flex;
+        flex-grow: 1;
+        max-width: 480px;
+        position: relative;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 16px 12px 44px;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 14px;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px var(--color-primary-glow);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none;
+    }
+
+    /* List Table Design */
+    .employee-table-container {
+        overflow-x: auto;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+    }
+
+    .employee-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .employee-table th {
+        background-color: rgba(30, 41, 59, 0.4);
+        padding: 16px 20px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        border-bottom: 1px solid var(--border-color);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .employee-table td {
+        padding: 18px 20px;
+        font-size: 14px;
+        border-bottom: 1px solid var(--border-color);
+        background-color: var(--bg-card);
+        color: var(--text-primary);
+    }
+
+    .employee-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .employee-table tr:hover td {
+        background-color: rgba(255, 255, 255, 0.015);
+    }
+
+    .meta-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .meta-title {
+        font-weight: 500;
+    }
+
+    .meta-subtitle {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .avatar-lg {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background-color: var(--color-primary-glow);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    /* Active status dot */
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .status-dot.active {
+        background-color: var(--color-success);
+        box-shadow: 0 0 8px var(--color-success);
+    }
+
+    .status-dot.inactive {
+        background-color: var(--text-muted);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-filter-bar">
+    <!-- Search Form -->
+    <form method="GET" action="{% url 'employee_list' %}" class="search-form">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by name, department, designation, email..." class="search-input">
+        {% if query %}
+        <a href="{% url 'employee_list' %}" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); text-decoration: none;" title="Clear search">
+            <i class="fa-solid fa-circle-xmark"></i>
+        </a>
+        {% endif %}
+    </form>
+    
+    <!-- Action Button -->
+    <a href="{% url 'employee_create' %}" class="btn btn-primary">
+        <i class="fa-solid fa-user-plus"></i>
+        <span>Add Employee</span>
+    </a>
+</div>
+
+<!-- Employee List Card -->
+<div class="employee-table-container">
+    {% if employees %}
+    <table class="employee-table">
+        <thead>
+            <tr>
+                <th>Employee Name</th>
+                <th>Contact Info</th>
+                <th>Position Details</th>
+                <th>Date Joined</th>
+                <th>Status</th>
+                <th style="text-align: right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for emp in employees %}
+            <tr>
+                <td>
+                    <div class="employee-cell">
+                        <div class="avatar-lg">
+                            {{ emp.first_name|slice:":1" }}{{ emp.last_name|slice:":1" }}
+                        </div>
+                        <div class="meta-cell">
+                            <span class="meta-title" style="font-size: 15px;">{{ emp.full_name }}</span>
+                            <span class="meta-subtitle">{{ emp.email }}</span>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="meta-cell">
+                        <span>{{ emp.phone|default:"N/A" }}</span>
+                        <span class="meta-subtitle">Phone Number</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="meta-cell">
+                        <span class="meta-title">{{ emp.designation }}</span>
+                        <span class="meta-subtitle">{{ emp.department }}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="meta-cell">
+                        <span>{{ emp.date_joined|date:"M d, Y" }}</span>
+                        <span class="meta-subtitle">Joining Date</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="status-indicator">
+                        {% if emp.is_active %}
+                        <div class="status-dot active"></div>
+                        <span style="color: var(--color-success);">Active</span>
+                        {% else %}
+                        <div class="status-dot inactive"></div>
+                        <span style="color: var(--text-muted);">Inactive</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td style="text-align: right;">
+                    <div class="quick-actions" style="justify-content: flex-end;">
+                        <a href="{% url 'employee_detail' emp.id %}" class="action-icon-btn" title="View Profile & Attendance">
+                            <i class="fa-regular fa-id-card"></i>
+                        </a>
+                        <a href="{% url 'employee_edit' emp.id %}" class="action-icon-btn" title="Edit Profile">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="glass-card" style="text-align: center; padding: 60px 20px; border: none; margin-bottom: 0;">
+        <i class="fa-solid fa-users-slash" style="font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.4; color: var(--color-primary);"></i>
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No Employees Found</h3>
+        <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto 20px auto; font-size: 14px;">
+            {% if query %}
+            We couldn't find any employees matching your search query "{{ query }}".
+            {% else %}
+            The employee roster is currently empty. Get started by registering your first employee profile.
+            {% endif %}
+        </p>
+        {% if query %}
+        <a href="{% url 'employee_list' %}" class="btn btn-secondary">Clear Search Filter</a>
+        {% else %}
+        <a href="{% url 'employee_create' %}" class="btn btn-primary">Create Employee Profile</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
