@@ -25,7 +25,11 @@ SECRET_KEY = 'django-insecure-9v&ynpuvbo&jw@_tr#6-$0@f8n7=o*=hz$9wfihj*+-==#k2bw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    "demo-app-guaebvhkgmf8cqcz.uaenorth-01.azurewebsites.net",
+    "localhost",
+    "127.0.0.1",
+]
 
 
 # Application definition
@@ -126,6 +130,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
-
+CSRF_TRUSTED_ORIGINS = [
+    "https://demo-app-guaebvhkgmf8cqcz.uaenorth-01.azurewebsites.net",
+]
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
